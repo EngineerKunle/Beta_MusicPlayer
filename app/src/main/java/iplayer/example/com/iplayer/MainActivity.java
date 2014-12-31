@@ -21,10 +21,10 @@ import android.widget.SimpleCursorAdapter;
 
 public class MainActivity extends ListActivity{
 
-    public static int STATE_SELECT_ALBUM = 0;
-    public static int STATE_SELECT_SONG = 1;
-    int currentState = STATE_SELECT_ALBUM;
-    private Cursor cursor;
+    public static final int STATE_SELECT_ALBUM = 0;
+    public static final int STATE_SELECT_SONG = 1;
+    public static final int currentState = STATE_SELECT_ALBUM;
+    //private Cursor cursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,62 +45,20 @@ public class MainActivity extends ListActivity{
 
         }
 
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
 
-    public void onItemClick(AdapterView<?> listView, View view, int position, long id){
+        //Getting song index
+        int songIndex = position;
+        // Starting new intent
+        Intent in = new Intent(getApplicationContext(),Play.class);
 
-        if(currentState == STATE_SELECT_ALBUM){
-
-
-            if (cursor.moveToPosition(position)) {
-                String[] columns = {
-                        MediaStore.Audio.Media.DATA,
-                        MediaStore.Audio.Media._ID,
-                        MediaStore.Audio.Media.TITLE,
-                        MediaStore.Audio.Media.DISPLAY_NAME,
-                        MediaStore.Audio.Media.MIME_TYPE,
-                };
-
-                String where = android.provider.MediaStore.Audio.Media.ALBUM + "=?";
-
-                String whereVal[] = { cursor.getString(cursor
-                        .getColumnIndex(MediaStore.Audio.Albums.ALBUM)) };
-
-                String orderBy = android.provider.MediaStore.Audio.Media.TITLE;
-
-                cursor = getContentResolver().query(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, columns,
-                        where, whereVal, orderBy);
-
-                String[] displayFields = new String[] { MediaStore.Audio.Media.DISPLAY_NAME };
-                int[] displayViews = new int[] { android.R.id.text1 };
-                setListAdapter(new SimpleCursorAdapter(this,
-                        android.R.layout.simple_list_item_1, cursor,
-                        displayFields, displayViews,0));
-
-            } else if (currentState == STATE_SELECT_SONG) {
-
-                if (cursor.moveToPosition(position)) {
-
-                    int fileColumn = cursor
-                            .getColumnIndex(MediaStore.Audio.Media.DATA);
-
-                    int mimeTypeColumn = cursor
-                            .getColumnIndex(MediaStore.Audio.Media.MIME_TYPE);
-
-                    String audioFilePath = cursor.getString(fileColumn);
-
-                    String mimeType = cursor.getString(mimeTypeColumn);
-
-                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
-
-                    File newFile = new File(audioFilePath);
-
-                    intent.setDataAndType(Uri.fromFile(newFile), mimeType);
-
-                    startActivity(intent);
-                }
-            }
-        }
+        // Sending songIndex to Play Activity
+        in.putExtra("SongPosition", songIndex);
+        setResult(100, in);
+        startActivityForResult(in, 100);
+                // Closing PlayListView
+        finish();
     }
 
     @Override
