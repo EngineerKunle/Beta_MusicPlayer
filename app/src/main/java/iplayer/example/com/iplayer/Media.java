@@ -1,12 +1,13 @@
 package iplayer.example.com.iplayer;
 
+import android.app.Activity;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
-public class Media extends ActionBarActivity {
+public class Media extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

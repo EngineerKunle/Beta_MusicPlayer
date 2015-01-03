@@ -1,5 +1,6 @@
 package iplayer.example.com.iplayer;
 
+import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
@@ -11,7 +12,9 @@ import android.view.MenuItem;
 import android.widget.SimpleCursorAdapter;
 
 
-public class Play extends ListActivity{
+public class Play extends Activity {
+
+    //this wil be the now playing class...
 
     private int currentAlbumIndex = 0;
     private Cursor cursor;
@@ -20,6 +23,8 @@ public class Play extends ListActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
+
+
 
     }
 
@@ -63,10 +68,10 @@ public class Play extends ListActivity{
 
             String[] displayFields = new String[] { MediaStore.Audio.Media.DISPLAY_NAME };
             int[] displayViews = new int[] { android.R.id.text1 };
-            setListAdapter(new SimpleCursorAdapter(this,
-                    android.R.layout.simple_list_item_1, cursor,
-                    displayFields, displayViews,0));
-        }
+//            setListAdapter(new SimpleCursorAdapter(this,
+//                android.R.layout.simple_list_item_1, cursor,
+//                displayFields, displayViews,0));
+    }
 
     }
 

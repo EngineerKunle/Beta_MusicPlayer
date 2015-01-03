@@ -18,7 +18,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
-
+//Should be seen as master class...
 public class MainActivity extends ListActivity{
 
     public static final int STATE_SELECT_ALBUM = 0;
