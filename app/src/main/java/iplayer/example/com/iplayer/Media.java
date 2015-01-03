@@ -9,6 +9,8 @@ import android.view.MenuItem;
 
 public class Media extends Activity {
 
+    //will need to change this to MuiscReciever class
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -15,6 +15,8 @@ import java.util.ArrayList;
  */
 public class IpMain {
 
+    //Logic for Whole player..
+
     /**
      * All the songs on the device.
      */
