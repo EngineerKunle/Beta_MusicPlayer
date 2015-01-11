@@ -1,15 +1,24 @@
 package iplayer.example.com.iplayer.Model;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+
+import android.content.ContentResolver;
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 
 /**
  * Created by Kunle on 06/01/2015.
  */
 
 /**
-this not finished and here is where the logic of the class will be.
+this not finished and here is where the logic of the class will be. NB here I have modified the code to the app needs
+ deleting the playlist function as I would not need them for this app.. gor future maybe
+ .
  */
 public class SongList {
     /**
@@ -89,9 +98,10 @@ public class SongList {
         Uri genreUri = ((fromWhere == "internal") ?
                 android.provider.MediaStore.Audio.Genres.INTERNAL_CONTENT_URI:
                 android.provider.MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI);
-        Uri playlistUri = ((fromWhere == "internal") ?
+
+       /* Uri playlistUri = ((fromWhere == "internal") ?
                 android.provider.MediaStore.Audio.Playlists.INTERNAL_CONTENT_URI:
-                android.provider.MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI);
+                android.provider.MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI);*/
 
         // Gives us access to query for files on the system.
         ContentResolver resolver = c.getContentResolver();
@@ -244,22 +254,22 @@ public class SongList {
         // one of those, getting all songs inside them.
 
         // As you know, the columns for the database.
-        String PLAYLIST_ID      = MediaStore.Audio.Playlists._ID;
+       /* String PLAYLIST_ID      = MediaStore.Audio.Playlists._ID;
         String PLAYLIST_NAME    = MediaStore.Audio.Playlists.NAME;
-        String PLAYLIST_SONG_ID = MediaStore.Audio.Playlists.Members.AUDIO_ID;
+        String PLAYLIST_SONG_ID = MediaStore.Audio.Playlists.Members.AUDIO_ID;*/
 
         // This is what I'll get for all playlists.
-        String[] playlistColumns = {
+       /* String[] playlistColumns = {
                 PLAYLIST_ID,
                 PLAYLIST_NAME
-        };
+        };*/
 
         // The actual query - takes a while.
-        cursor = resolver.query(playlistUri, playlistColumns, null, null, null);
+      //  cursor = resolver.query(playlistUri, playlistColumns, null, null, null);
 
         // Going through all playlists, creating my class and populating
         // it with all the song IDs they have.
-        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+       /* for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
 
             Playlist playlist = new Playlist(cursor.getLong(cursor.getColumnIndex(PLAYLIST_ID)),
                     cursor.getString(cursor.getColumnIndex(PLAYLIST_NAME)));
@@ -278,13 +288,12 @@ public class SongList {
 
             playlists.add(playlist);
             cursor2.close();
-        }
+        }*/
 
         // Finally, let's sort the song list alphabetically
         // based on the song title.
         Collections.sort(songs, new Comparator<Song>() {
-            public int compare(Song a, Song b)
-            {
+            public int compare(Song a, Song b) {
                 return a.getTitle().compareTo(b.getTitle());
             }
         });
