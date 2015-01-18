@@ -1,11 +1,15 @@
 package iplayer.example.com.iplayer;
 
+import android.app.ActionBar;
+import android.app.Activity;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import java.io.File;
+import java.util.ArrayList;
+
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
@@ -15,11 +19,16 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
 //Should be seen as master class...
-public class MainActivity extends ListActivity{
+public class MainActivity extends Activity {
+
+    public static ArrayList<String> items;
+
+    ListView listView;
 
     public static final int STATE_SELECT_ALBUM = 0;
     public static final int STATE_SELECT_SONG = 1;
@@ -29,21 +38,31 @@ public class MainActivity extends ListActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        String[] columns = {
-                android.provider.MediaStore.Audio.Albums._ID,
-                android.provider.MediaStore.Audio.Albums.ALBUM
-        };
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_menu_albums);
 
-        Cursor cursor = getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, columns,
-                null, null, null);
+        // This enables the "Up" button on the top Action Bar
+        // Note that it returns to the parent Activity, specified
+        // on `AndroidManifest`
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null)
+            actionBar.setDisplayHomeAsUpEnabled(true);
 
-        String[] displayFields = new String[] {MediaStore.Audio.Albums.ALBUM};
-        int[] displayViews = new int[] {android.R.id.text1};
-        setListAdapter(new SimpleCursorAdapter(this,android.R.layout.simple_list_item_1, cursor, displayFields,displayViews,0));
+        // List to be populated with items
+        listView = (ListView)findViewById(R.id.activity_menu_albums_list);
 
-        }
+        items = IpMain.songs.getAlbums();
+
+        // Adapter that will convert from Strings to List Items
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>
+                (this, android.R.layout.simple_list_item_1, items);
+
+        // Filling teh list with all the items
+        listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener(this);
+    }
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {

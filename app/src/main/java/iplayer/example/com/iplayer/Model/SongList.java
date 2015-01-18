@@ -301,5 +301,223 @@ public class SongList {
         scannedSongs  = true;
         scanningSongs = false;
     }
+    public void destroy() {
+        songs.clear();
+    }
+
+    /**
+     * Returns an alphabetically sorted list with all the
+     * artists of the scanned songs.
+     *
+     * @note This method might take a while depending on how
+     *       many songs you have.
+     */
+    public ArrayList<String> getArtists() {
+
+        ArrayList<String> artists = new ArrayList<String>();
+
+        for (Song song : songs) {
+            String artist = song.getArtist();
+
+            if ((artist != null) && (! artists.contains(artist)))
+                artists.add(artist);
+        }
+
+        // Making them alphabetically sorted
+        Collections.sort(artists);
+
+        return artists;
+    }
+
+    /**
+     * Returns an alphabetically sorted list with all the
+     * albums of the scanned songs.
+     *
+     * @note This method might take a while depending on how
+     *       many songs you have.
+     */
+    public ArrayList<String> getAlbums() {
+
+        ArrayList<String> albums = new ArrayList<String>();
+
+        for (Song song : songs) {
+            String album = song.getAlbum();
+
+            if ((album != null) && (! albums.contains(album)))
+                albums.add(album);
+        }
+
+        // Making them alphabetically sorted
+        Collections.sort(albums);
+
+        return albums;
+    }
+
+    /**
+     * Returns an alphabetically sorted list with all
+     * existing genres on the scanned songs.
+     */
+    public ArrayList<String> getGenres() {
+
+        ArrayList<String> genres = new ArrayList<String>();
+
+        for (String genre : genreIdToGenreNameMap.values())
+            genres.add(genre);
+
+        Collections.sort(genres);
+
+        return genres;
+    }
+
+    /**
+     * Returns a list with all years your songs have.
+     *
+     * @note It is a list of Strings. To access the
+     *       years, do a `Integer.parseInt(string)`.
+     */
+    public ArrayList<String> getYears() {
+
+        ArrayList<String> years = new ArrayList<String>();
+
+        for (Song song : songs) {
+            String year = Integer.toString(song.getYear());
+
+            if ((Integer.parseInt(year) > 0) && (! years.contains(year)))
+                years.add(year);
+        }
+
+        // Making them alphabetically sorted
+        Collections.sort(years);
+
+        return years;
+    }
+
+    /**
+     * Returns a list of Songs belonging to a specified artist.
+     */
+    public ArrayList<Song> getSongsByArtist(String desiredArtist) {
+        ArrayList<Song> songsByArtist = new ArrayList<Song>();
+
+        for (Song song : songs) {
+            String currentArtist = song.getArtist();
+
+            if (currentArtist.equals(desiredArtist))
+                songsByArtist.add(song);
+        }
+
+        // Sorting resulting list by Album
+        Collections.sort(songsByArtist, new Comparator<Song>() {
+            public int compare(Song a, Song b)
+            {
+                return a.getAlbum().compareTo(b.getAlbum());
+            }
+        });
+
+        return songsByArtist;
+    }
+
+    /**
+     * Returns a list of album names belonging to a specified artist.
+     */
+    public ArrayList<String> getAlbumsByArtist(String desiredArtist) {
+        ArrayList<String> albumsByArtist = new ArrayList<String>();
+
+        for (Song song : songs) {
+            String currentArtist = song.getArtist();
+            String currentAlbum  = song.getAlbum();
+
+            if (currentArtist.equals(desiredArtist))
+                if (! albumsByArtist.contains(currentAlbum))
+                    albumsByArtist.add(currentAlbum);
+        }
+
+        // Sorting alphabetically
+        Collections.sort(albumsByArtist);
+
+        return albumsByArtist;
+    }
+
+    /**
+     * Returns a new list with all songs.
+     *
+     * @note This is different than accessing `songs` directly
+     *       because it duplicates it - you can then mess with
+     *       it without worrying about changing the original.
+     */
+    public ArrayList<Song> getSongs() {
+        ArrayList<Song> list = new ArrayList<Song>();
+
+        for (Song song : songs)
+            list.add(song);
+
+        return list;
+    }
+
+    /**
+     * Returns a list of Songs belonging to a specified album.
+     */
+    public ArrayList<Song> getSongsByAlbum(String desiredAlbum) {
+        ArrayList<Song> songsByAlbum = new ArrayList<Song>();
+
+        for (Song song : songs) {
+            String currentAlbum = song.getAlbum();
+
+            if (currentAlbum.equals(desiredAlbum))
+                songsByAlbum.add(song);
+        }
+
+        return songsByAlbum;
+    }
+
+    /**
+     * Returns a list with all songs that have the same `genre.`
+     */
+    public ArrayList<Song> getSongsByGenre(String genreName) {
+
+        ArrayList<Song> currentSongs = new ArrayList<Song>();
+
+        for (Song song : songs) {
+
+            String currentSongGenre = song.getGenre();
+
+            if (currentSongGenre == genreName)
+                currentSongs.add(song);
+        }
+
+        return currentSongs;
+    }
+
+    /**
+     * Returns a list with all songs composed at `year`.
+     */
+    public ArrayList<Song> getSongsByYear(int year) {
+
+        ArrayList<Song> currentSongs = new ArrayList<Song>();
+
+        for (Song song : songs) {
+
+            int currentYear = song.getYear();
+
+            if (currentYear == year)
+                currentSongs.add(song);
+        }
+
+        return currentSongs;
+    }
+
+
+
+    public Song getSongById(long id) {
+
+        Song currentSong = null;
+
+        for (Song song : songs)
+            if (song.getId() == id) {
+                currentSong = song;
+                break;
+            }
+
+        return currentSong;
+    }
 
 }
