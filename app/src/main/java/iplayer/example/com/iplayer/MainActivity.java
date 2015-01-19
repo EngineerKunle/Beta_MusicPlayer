@@ -2,8 +2,10 @@ package iplayer.example.com.iplayer;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.internal.widget.AdapterViewCompat;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -23,8 +25,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
+
 //Should be seen as master class...
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements AdapterView.OnItemClickListener {
 
     public static ArrayList<String> items;
 
@@ -65,19 +68,8 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-        //Getting song index
-        int songIndex = position;
-        // Starting new intent
-        Intent in = new Intent(getApplicationContext(),Play.class);
-
-        // Sending songIndex to Play Activity
-        in.putExtra("SongPosition", songIndex);
-        setResult(100, in);
-        startActivityForResult(in, 100);
-                // Closing PlayListView
-        finish();
     }
 
     @Override
@@ -101,4 +93,18 @@ public class MainActivity extends Activity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    /**
+     * this class will scan for music on the device to make it easier rather
+     * than do it on the main thread
+     */
+
+    class ScanSongs extends AsyncTask<String, Integer, String> {
+       
+        @Override
+        protected String doInBackground(String... params) {
+            return null;
+        }
+    }
+
 }
