@@ -106,6 +106,11 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
      */
 
     class ScanSongs extends AsyncTask<String, Integer, String> {
+        /**
+         *
+         * this class takes in 3 objects.. String for the do in background method,
+         * Integer for the progression and String for resulting value
+         */
 
         @Override
         protected String doInBackground(String... params) {
