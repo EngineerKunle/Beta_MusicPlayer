@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="hello_world">IP player</string>
     <string name="app_name">IPlayer</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_play">Play</string>
     <string name="title_activity_media">Media</string>
+    <string name="menu_main_scanning_not_ok">Error while scanning songs</string>
+    <string name="menu_main_scanning_ok">Sucessfully scanned songs </string>
+    <string name="menu_main_now_playing">Tweet Music is playing</string>
+
+
 
 </resources>

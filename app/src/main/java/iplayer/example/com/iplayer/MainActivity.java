@@ -2,6 +2,7 @@ package iplayer.example.com.iplayer;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -24,12 +25,17 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.Toast;
+
+import iplayer.example.com.iplayer.Helpers.SingleToast;
 
 
 //Should be seen as master class...
 public class MainActivity extends Activity implements AdapterView.OnItemClickListener {
 
     public static ArrayList<String> items;
+    // Adapter that will convert from Strings to List Items
+    public static ArrayAdapter<String> adapter = null;
 
     ListView listView;
 
@@ -100,11 +106,50 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
      */
 
     class ScanSongs extends AsyncTask<String, Integer, String> {
-       
+
         @Override
         protected String doInBackground(String... params) {
-            return null;
+
+            try {
+                // Will scan all songs on the device
+                IpMain.songs.scanSongs(MainActivity.this, "external");
+                return MainActivity.this.getString(R.string.menu_main_scanning_ok);
+            }
+            catch (Exception e) {
+                Log.e("Couldn't execute background task", e.toString());
+                e.printStackTrace();
+                return MainActivity.this.getString(R.string.menu_main_scanning_not_ok);
+            }
+        }
+        /**
+         * Called once the background processing is done.
+         */
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            SingleToast.show(MainActivity.this,
+                    result,
+                    Toast.LENGTH_LONG);
         }
     }
 
-}
+    /**
+     * Adds a new item "Now Playing" on the main menu, if
+     * it ain't there yet.
+     */
+    public static void addNowPlayingItem(Context c) {
+
+        if (IpMain.mainMenuHasNowPlayingItem)
+            return;
+
+        MainActivity.items.add(c.getString(R.string.menu_main_now_playing));
+
+        IpMain.mainMenuHasNowPlayingItem = true;
+
+        // Refresh ListView
+        adapter.notifyDataSetChanged();
+        }
+    }
+
+
