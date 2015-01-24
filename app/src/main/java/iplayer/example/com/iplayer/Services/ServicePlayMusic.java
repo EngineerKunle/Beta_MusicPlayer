@@ -14,13 +14,21 @@ import iplayer.example.com.iplayer.Model.Song;
 /**
  * Created by EngineerKunle on 20/01/15.
  */
+
+//need to work on audiofocus class
+
 public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener,
         MediaPlayer.OnCompletionListener,
         AudioManager.OnAudioFocusChangeListener {
 
+    /**
+     * AudioFocus will allow your app to have priority over other audio
+     * playing apps.
+     */
+
     private MediaPlayer player; //creating Mediaplayer variable
-    
+
     public static final String BROADCAST_ACTION = "com.iplayer.MUSIC_SERVICE";
 
     /** String used to get the current state Extra on the Broadcast Intent */
@@ -33,22 +41,22 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
     // Ignore the actual values
 
     /** Broadcast for when some music started playing */
-    public static final String BROADCAST_EXTRA_PLAYING = "beatles";
+    public static final String BROADCAST_EXTRA_PLAYING = "Usher";
 
     /** Broadcast for when some music just got paused */
-    public static final String BROADCAST_EXTRA_PAUSED = "santana";
+    public static final String BROADCAST_EXTRA_PAUSED = "MJ";
 
     /** Broadcast for when a paused music got unpaused*/
-    public static final String BROADCAST_EXTRA_UNPAUSED = "iron_maiden";
+    public static final String BROADCAST_EXTRA_UNPAUSED = "Chris Brown";
 
     /** Broadcast for when current music got played until the end */
-    public static final String BROADCAST_EXTRA_COMPLETED = "los_hermanos";
+    public static final String BROADCAST_EXTRA_COMPLETED = "jB";
 
     /** Broadcast for when the user skipped to the next song */
-    public static final String BROADCAST_EXTRA_SKIP_NEXT = "paul_gilbert";
+    public static final String BROADCAST_EXTRA_SKIP_NEXT = "skipped";
 
     /** Broadcast for when the user skipped to the previous song */
-    public static final String BROADCAST_EXTRA_SKIP_PREVIOUS = "john_petrucci";
+    public static final String BROADCAST_EXTRA_SKIP_PREVIOUS = "previous";
 
     /**
      * List of songs we're  currently playing.
