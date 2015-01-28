@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import iplayer.example.com.iplayer.Model.Song;
+import iplayer.example.com.iplayer.NotificationMusic;
 
 /**
  * Created by EngineerKunle on 20/01/15.
