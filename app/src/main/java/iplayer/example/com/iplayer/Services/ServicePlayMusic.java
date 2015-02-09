@@ -101,15 +101,41 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
     // constants exist in our class is a mere convenience: what really defines the actions our
     // service can handle are the <action> tags in the <intent-filters> tag for our service in
     // AndroidManifest.xml.
-    public static final String BROADCAST_ORDER = "com.kure.musicplayer.MUSIC_SERVICE";
+    public static final String BROADCAST_ORDER = "MUSIC_SERVICE";
     public static final String BROADCAST_EXTRA_GET_ORDER = "com.kure.musicplayer.dasdas.MUSIC_SERVICE";
 
-    public static final String BROADCAST_ORDER_PLAY            = "com.kure.musicplayer.action.PLAY";
-    public static final String BROADCAST_ORDER_PAUSE           = "com.kure.musicplayer.action.PAUSE";
+    public static final String BROADCAST_ORDER_PLAY            = "PLAY";
+    public static final String BROADCAST_ORDER_PAUSE           = "PAUSE";
     public static final String BROADCAST_ORDER_TOGGLE_PLAYBACK = "dlsadasd";
-    public static final String BROADCAST_ORDER_STOP            = "com.kure.musicplayer.action.STOP";
-    public static final String BROADCAST_ORDER_SKIP            = "com.kure.musicplayer.action.SKIP";
-    public static final String BROADCAST_ORDER_REWIND          = "com.kure.musicplayer.action.REWIND";
+    public static final String BROADCAST_ORDER_STOP            = "STOP";
+    public static final String BROADCAST_ORDER_SKIP            = "SKIP";
+    public static final String BROADCAST_ORDER_REWIND          = "REWIND";
+
+    enum Servicestate{
+
+        Stopped, //when media player has stopped or cannot play
+
+        Preparing, //Media player is preparing to play
+
+        Playing, //Media Player is playing
+
+        Paused, //Media player has stopped
+
+    }
+
+
+    //setting the current state.
+    Servicestate servicestate = Servicestate.Preparing;
+
+    /**
+     * Controller that communicates with the lock screen,
+     * providing that fancy widget.
+     */
+   // RemoteControlClientCompat lockscreenController = null;
+
+
+
+
 
 
     @Override
