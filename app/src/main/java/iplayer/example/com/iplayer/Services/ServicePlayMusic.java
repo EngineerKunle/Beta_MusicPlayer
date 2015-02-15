@@ -1,16 +1,23 @@
 package iplayer.example.com.iplayer.Services;
 
 import android.app.Service;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import iplayer.example.com.iplayer.Model.Song;
 import iplayer.example.com.iplayer.NotificationMusic;
+import iplayer.example.com.iplayer.external.RemoteControlClientCompat;
 
 /**
  * Created by EngineerKunle on 20/01/15.
@@ -131,7 +138,105 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
      * Controller that communicates with the lock screen,
      * providing that fancy widget.
      */
-   // RemoteControlClientCompat lockscreenController = null;
+    RemoteControlClientCompat lockscreenController = null;
+
+    /**
+     * We use this to get the media buttons' Broadcasts and
+     * to control the lock screen widget.
+     *
+     * Component name of the MusicIntentReceiver.
+     */
+    ComponentName mediaButtonEventReceiver;
+
+    /**
+     * Use this to get audio focus:
+     *
+     * 1. Making sure other music apps don't play
+     *    at the same time;
+     * 2. Guaranteeing the lock screen widget will
+     *    be controlled by us;
+     */
+    AudioManager audioManager;
+
+
+    /**
+     * Whenever we're created, reset the MusicPlayer and
+     * start the MusicScrobblerService.
+     */
+    public void onCreate() {
+        super.onCreate();
+
+        currentSongPosition = 0;
+
+        randomNumberGenerator = new Random();
+
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+
+        initMusicPlayer();
+
+        Context context = getApplicationContext();
+
+        /**Starting the scrobbler service.
+        Intent scrobblerIntent = new Intent(context, ServiceScrobbleMusic.class);
+        context.startService(scrobblerIntent);
+         **/
+
+        // Registering our BroadcastReceiver to listen to orders
+        // from inside our own application.
+        LocalBroadcastManager
+                .getInstance(getApplicationContext())
+                .registerReceiver(localBroadcastReceiver, new IntentFilter(ServicePlayMusic.BROADCAST_ORDER));
+
+        // Registering the headset broadcaster for info related
+        // to user plugging the headset.
+        IntentFilter headsetFilter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        registerReceiver(headsetBroadcastReceiver, headsetFilter);
+
+        Log.w(TAG, "onCreate");
+    }
+
+    public void initMusicPlayer() {
+        if (player == null)
+            player = new MediaPlayer();
+
+        // Assures the CPU continues running this service
+        // even when the device is sleeping.
+        player.setWakeMode(getApplicationContext(),
+                PowerManager.PARTIAL_WAKE_LOCK);
+
+        //player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+        // These are the events that will "wake us up"
+        player.setOnPreparedListener(this); // player initialized
+        player.setOnCompletionListener(this); // song completed
+        player.setOnErrorListener(this);
+
+        Log.w(TAG, "initMusicPlayer");
+    }
+
+    /**
+     * Cleans resources from Android's native MediaPlayer.
+     *
+     * @note According to the MediaPlayer guide, you should release
+     *       the MediaPlayer as often as possible.
+     *       For example, when losing Audio Focus for an extended
+     *       period of time.
+     */
+    public void stopMusicPlayer() {
+        if (player == null)
+            return;
+
+        player.stop();
+        player.release();
+        player = null;
+
+        Log.w(TAG, "stopMusicPlayer");
+    }
+
+
+
+
+
 
 
 
