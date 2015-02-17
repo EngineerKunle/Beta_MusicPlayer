@@ -1,6 +1,7 @@
 package iplayer.example.com.iplayer.Services;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -11,12 +12,16 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Random;
 
+import iplayer.example.com.iplayer.IpMain;
 import iplayer.example.com.iplayer.Model.Song;
 import iplayer.example.com.iplayer.NotificationMusic;
+import iplayer.example.com.iplayer.R;
 import iplayer.example.com.iplayer.external.RemoteControlClientCompat;
 
 /**
@@ -232,6 +237,122 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
 
         Log.w(TAG, "stopMusicPlayer");
     }
+
+
+    /**
+     * Sets the "Now Playing List"
+     *
+     * @param theSongs Songs list that will play from now on.
+     *
+     * @note Make sure to call {@link #//playSong()} after this.
+     */
+    public void setList(ArrayList<Song> theSongs) {
+        songs = theSongs;
+    }
+
+    /**
+     * Appends a song to the end of the currently playing queue.
+     *
+     * @param song New song to put at the end.
+     */
+    public void add(Song song) {
+        songs.add(song);
+    }
+
+    public static class ExternalBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            Log.w(TAG, "external broadcast");
+
+            // Broadcasting orders to our MusicService
+            // locally (inside the application)
+            LocalBroadcastManager local = LocalBroadcastManager.getInstance(context);
+
+            String action = intent.getAction();
+
+            // Headphones disconnected
+            if (action.equals(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
+
+
+                // ADD SETTINGS HERE
+                String text = context.getString(R.string.service_music_play_headphone_off);
+                Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+
+                // send an intent to our MusicService to telling it to pause the audio
+                Intent broadcastIntent = new Intent(ServicePlayMusic.BROADCAST_ORDER);
+                broadcastIntent.putExtra(ServicePlayMusic.BROADCAST_EXTRA_GET_ORDER, ServicePlayMusic.BROADCAST_ORDER_PAUSE);
+
+                local.sendBroadcast(broadcastIntent);
+                Log.w(TAG, "becoming noisy");
+                return;
+            }
+
+            if (action.equals(Intent.ACTION_MEDIA_BUTTON)) {
+
+                // Which media key was pressed
+                KeyEvent keyEvent = (KeyEvent) intent.getExtras().get(Intent.EXTRA_KEY_EVENT);
+
+                // Not interested on anything other than pressed keys.
+                if (keyEvent.getAction() != KeyEvent.ACTION_DOWN)
+                    return;
+
+                String intentValue = null;
+
+                switch (keyEvent.getKeyCode()) {
+
+                    case KeyEvent.KEYCODE_HEADSETHOOK:
+                    case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                        intentValue = ServicePlayMusic.BROADCAST_ORDER_TOGGLE_PLAYBACK;
+                        Log.w(TAG, "media play pause");
+                        break;
+
+                    case KeyEvent.KEYCODE_MEDIA_PLAY:
+                        intentValue = ServicePlayMusic.BROADCAST_ORDER_PLAY;
+                        Log.w(TAG, "media play");
+                        break;
+
+                    case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                        intentValue = ServicePlayMusic.BROADCAST_ORDER_PAUSE;
+                        Log.w(TAG, "media pause");
+                        break;
+
+                    case KeyEvent.KEYCODE_MEDIA_NEXT:
+                        intentValue = ServicePlayMusic.BROADCAST_ORDER_SKIP;
+                        Log.w(TAG, "media next");
+                        break;
+
+                    case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                        // TODO: ensure that doing this in rapid succession actually plays the
+                        // previous song
+                        intentValue = ServicePlayMusic.BROADCAST_ORDER_REWIND;
+                        Log.w(TAG, "media previous");
+                        break;
+                }
+
+                // Actually sending the Intent
+                if (intentValue != null) {
+                    Intent broadcastIntent = new Intent(ServicePlayMusic.BROADCAST_ORDER);
+                    broadcastIntent.putExtra(ServicePlayMusic.BROADCAST_EXTRA_GET_ORDER, intentValue);
+
+                    local.sendBroadcast(broadcastIntent);
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
