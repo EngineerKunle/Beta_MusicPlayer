@@ -9,7 +9,9 @@
     <string name="menu_main_scanning_not_ok">Error while scanning songs</string>
     <string name="menu_main_scanning_ok">Sucessfully scanned songs </string>
     <string name="menu_main_now_playing">Tweet Music is playing</string>
+
     <string name="service_music_play_headphone_off">Headphone disconnected</string>
+    <string name="service_music_play_headphone_on">Headphone connected (%1$s)</string>
 
 
 

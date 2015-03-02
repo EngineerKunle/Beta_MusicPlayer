@@ -11,6 +11,7 @@ import android.media.MediaPlayer;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.telephony.ServiceState;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
@@ -341,6 +342,53 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
             }
         }
     }
+
+    /**
+     * Will keep an eye on global broadcasts related to
+     * the Headset.
+     */
+    BroadcastReceiver headsetBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String action = intent.getAction();
+
+            // Headphones just connected (or not)
+            if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
+
+                Log.w(TAG, "headset plug");
+                boolean connectedHeadphones = (intent.getIntExtra("state", 0) == 1);
+                boolean connectedMicrophone = (intent.getIntExtra("microphone", 0) == 1) && connectedHeadphones;
+
+                // User just connected headphone and the player was paused,
+                // so we shoud restart the music.
+                if (connectedMicrophone && (serviceState == ServiceState.Paused)) {
+
+
+
+                    // Will only do it if it's Setting is enabled, of course
+                    if (IpMain.settings.get("play_headphone_on", true)) {
+                        LocalBroadcastManager local = LocalBroadcastManager.getInstance(context);
+
+
+                        Intent broadcastIntent = new Intent(ServicePlayMusic.BROADCAST_ORDER);
+                        broadcastIntent.putExtra(ServicePlayMusic.BROADCAST_EXTRA_GET_ORDER, ServicePlayMusic.BROADCAST_ORDER_PLAY);
+
+                        local.sendBroadcast(broadcastIntent);
+                    }
+                }
+
+                // I wonder what's this for
+                String headsetName = intent.getStringExtra("name");
+
+                if (connectedHeadphones) {
+                    String text = context.getString(R.string.service_music_play_headphone_on, headsetName);
+
+                    Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    };
 
 
 
