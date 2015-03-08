@@ -28,6 +28,12 @@ public class IpMain {
 
 
     /**
+     * All the app's configurations/preferences/settings.
+     */
+    public static Settings settings = new Settings();
+
+
+    /**
      * Our custom service that allows the music to play
      * even when the app is not on focus.
      */
