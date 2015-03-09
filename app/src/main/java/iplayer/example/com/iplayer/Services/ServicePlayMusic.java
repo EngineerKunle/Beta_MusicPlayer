@@ -389,6 +389,129 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
             }
         }
     };
+    /**
+     * The thing that will keep an eye on LocalBroadcasts
+     * for the MusicService.
+     */
+    BroadcastReceiver localBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            // Getting the information sent by the MusicService
+            // (and ignoring it if invalid)
+            String order = intent.getStringExtra(ServicePlayMusic.BROADCAST_EXTRA_GET_ORDER);
+
+            // What?
+            if (order == null)
+                return;
+
+            if (order.equals(ServicePlayMusic.BROADCAST_ORDER_PAUSE)) {
+                pausePlayer();
+            }
+            else if (order.equals(ServicePlayMusic.BROADCAST_ORDER_PLAY)) {
+                unpausePlayer();
+            }
+            else if (order.equals(ServicePlayMusic.BROADCAST_ORDER_TOGGLE_PLAYBACK)) {
+                togglePlayback();
+            }
+            else if (order.equals(ServicePlayMusic.BROADCAST_ORDER_SKIP)) {
+                next(true);
+                playSong();
+            }
+            else if (order.equals(ServicePlayMusic.BROADCAST_ORDER_REWIND)) {
+                previous(true);
+                playSong();
+            }
+
+            Log.w(TAG, "local broadcast received");
+        }
+    };
+
+    /**
+     * Asks the AudioManager for our application to
+     * have the audio focus.
+     *
+     * @return If we have it.
+     */
+    private boolean requestAudioFocus() {
+        //Request audio focus for playback
+        int result = audioManager.requestAudioFocus(
+                this,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN);
+
+        //Check if audio focus was granted. If not, stop the service.
+        return (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
+    }
+
+    /**
+     * Does something when the audio focus state changed
+     *
+     * @note Meaning it runs when we get and when we don't get
+     *       the audio focus from `#requestAudioFocus()`.
+     *
+     * For example, when we receive a message, we lose the focus
+     * and when the ringer stops playing, we get the focus again.
+     *
+     * So we must avoid the bug that occurs when the user pauses
+     * the player but receives a message - and since after that
+     * we get the focus, the player will unpause.
+     */
+    public void onAudioFocusChange(int focusChange) {
+
+        switch (focusChange) {
+
+            // Yay, gained audio focus! Either from losing it for
+            // a long or short periods of time.
+            case AudioManager.AUDIOFOCUS_GAIN:
+                Log.w(TAG, "audiofocus gain");
+
+                if (player == null)
+                    initMusicPlayer();
+
+                if (pausedTemporarilyDueToAudioFocus) {
+                    pausedTemporarilyDueToAudioFocus = false;
+                    unpausePlayer();
+                }
+
+                if (loweredVolumeDueToAudioFocus) {
+                    loweredVolumeDueToAudioFocus = false;
+                    player.setVolume(1.0f, 1.0f);
+                }
+                break;
+
+            // Damn, lost the audio focus for a (presumable) long time
+            case AudioManager.AUDIOFOCUS_LOSS:
+                Log.w(TAG, "audiofocus loss");
+
+                // Giving up everything
+                //audioManager.unregisterMediaButtonEventReceiver(mediaButtonEventReceiver);
+                //audioManager.abandonAudioFocus(this);
+
+                //pausePlayer();
+                stopMusicPlayer();
+                break;
+
+            // Just lost audio focus but will get it back shortly
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                Log.w(TAG, "audiofocus loss transient");
+
+                if (! isPaused()) {
+                    pausePlayer();
+                    pausedTemporarilyDueToAudioFocus = true;
+                }
+                break;
+
+            // Temporarily lost audio focus but I can keep it playing
+            // at a low volume instead of stopping completely
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                Log.w(TAG, "audiofocus loss transient can duck");
+
+                player.setVolume(0.1f, 0.1f);
+                loweredVolumeDueToAudioFocus = true;
+                break;
+        }
+    }
 
 
 
