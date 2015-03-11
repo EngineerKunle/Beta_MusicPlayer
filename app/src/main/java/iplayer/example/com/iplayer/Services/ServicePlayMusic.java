@@ -1,5 +1,6 @@
 package iplayer.example.com.iplayer.Services;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -8,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.RemoteControlClient;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -24,6 +26,7 @@ import iplayer.example.com.iplayer.Model.Song;
 import iplayer.example.com.iplayer.NotificationMusic;
 import iplayer.example.com.iplayer.R;
 import iplayer.example.com.iplayer.external.RemoteControlClientCompat;
+import iplayer.example.com.iplayer.external.RemoteControlHelper;
 
 /**
  * Created by EngineerKunle on 20/01/15.
@@ -513,8 +516,111 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
         }
     }
 
+    // Internal flags for the function above {{
+    private boolean pausedTemporarilyDueToAudioFocus = false;
+    private boolean loweredVolumeDueToAudioFocus     = false;
+    // }}
 
+    /**
+     * Updates the lock-screen widget (creating if non-existing).
+     *
+     * @param song  Where it will take metadata to display.
+     *
+     * @param state Which state is it into.
+     *              Can be one of the following:
+     *              {@link RemoteControlClient.PLAYSTATE_PLAYING }
+     *              {@link RemoteControlClient.PLAYSTATE_PAUSED }
+     *              {@link RemoteControlClient.PLAYSTATE_BUFFERING }
+     *              {@link RemoteControlClient.PLAYSTATE_ERROR }
+     *              {@link RemoteControlClient.PLAYSTATE_FAST_FORWARDING }
+     *              {@link RemoteControlClient.PLAYSTATE_REWINDING }
+     *              {@link RemoteControlClient.PLAYSTATE_SKIPPING_BACKWARDS }
+     *              {@link RemoteControlClient.PLAYSTATE_SKIPPING_FORWARDS }
+     *              {@link RemoteControlClient.PLAYSTATE_STOPPED }
+     */
 
+    public void updateLockScreenWidget(Song song, int state) {
+
+        // Only showing if the Setting is... well... set
+        if (! IpMain.settings.get("show_lock_widget", true))
+            return;
+
+        if (song == null)
+            return;
+
+        if (!requestAudioFocus()) {
+            //Stop the service.
+            stopSelf();
+            Toast.makeText(getApplicationContext(), "whoops!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Log.w("service", "audio_focus_granted");
+
+        // The Lock-Screen widget was not created up until now.
+        // (both of the null-checks below)
+        if (mediaButtonEventReceiver == null)
+            mediaButtonEventReceiver = new ComponentName(this, ExternalBroadcastReceiver.class);
+
+        if (lockscreenController == null) {
+            Intent audioButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+            audioButtonIntent.setComponent(mediaButtonEventReceiver);
+
+            PendingIntent pending = PendingIntent.getBroadcast(this, 0, audioButtonIntent, 0);
+
+            lockscreenController = new RemoteControlClientCompat(pending);
+
+            RemoteControlHelper.registerRemoteControlClient(audioManager, lockscreenController);
+            audioManager.registerMediaButtonEventReceiver(mediaButtonEventReceiver);
+
+            Log.w("service", "created control compat");
+        }
+
+        // Current state of the Lock-Screen Widget
+        lockscreenController.setPlaybackState(state);
+
+        // All buttons the Lock-Screen Widget supports
+        // (will be broadcasts)
+        lockscreenController.setTransportControlFlags(
+                RemoteControlClient.FLAG_KEY_MEDIA_PLAY     |
+                        RemoteControlClient.FLAG_KEY_MEDIA_PAUSE    |
+                        RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS |
+                        RemoteControlClient.FLAG_KEY_MEDIA_NEXT);
+
+        // Update the current song metadata
+        // on the Lock-Screen Widget
+        lockscreenController
+                // Starts editing (before #apply())
+                .editMetadata(true)
+
+                        // Sending all metadata of the current song
+                .putString(android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST,   song.getArtist())
+                .putString(android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM,    song.getAlbum())
+                .putString(android.media.MediaMetadataRetriever.METADATA_KEY_TITLE,    song.getTitle())
+                .putLong  (android.media.MediaMetadataRetriever.METADATA_KEY_DURATION, song.getDuration())
+
+                        // TODO: fetch real item artwork
+                        //.putBitmap(
+                        //        RemoteControlClientCompat.MetadataEditorCompat.METADATA_KEY_ARTWORK,
+                        //        mDummyAlbumArt)
+
+                        // Saves (after #editMetadata())
+                .apply();
+
+        Log.w("service", "remote control client applied");
+    }
+
+    public void destroyLockScreenWidget() {
+        if ((audioManager != null) && (lockscreenController != null)) {
+            //RemoteControlHelper.unregisterRemoteControlClient(audioManager, lockscreenController);
+            lockscreenController = null;
+        }
+
+        if ((audioManager != null) && (mediaButtonEventReceiver != null)) {
+            audioManager.unregisterMediaButtonEventReceiver(mediaButtonEventReceiver);
+            mediaButtonEventReceiver = null;
+        }
+    }
 
 
 
