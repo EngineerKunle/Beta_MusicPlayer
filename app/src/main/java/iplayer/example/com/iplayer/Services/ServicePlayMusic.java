@@ -718,6 +718,101 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
         currentSong = null;
     }
 
+    // These methods are to be called by the Activity
+    // to work on the music-playing.
+
+    /**
+     * Jumps to the previous song on the list.
+     *
+     * @note Remember to call `playSong()` to make the MusicPlayer
+     *       actually play the music.
+     */
+
+    public void previous(boolean userSkippedSong) {
+        if (serviceState != ServiceState.Paused && serviceState != ServiceState.Playing)
+            return;
+
+        if (userSkippedSong)
+            broadcastState(ServicePlayMusic.BROADCAST_EXTRA_SKIP_PREVIOUS);
+
+        // Updates Lock-Screen Widget
+        if (lockscreenController != null)
+            lockscreenController.setPlaybackState(RemoteControlClient.PLAYSTATE_SKIPPING_BACKWARDS);
+
+        currentSongPosition--;
+        if (currentSongPosition < 0)
+            currentSongPosition = songs.size() - 1;
+    }
+
+    /**
+     * Jumps to the next song on the list.
+     *
+     * @note Remember to call `playSong()` to make the MusicPlayer
+     *       actually play the music.
+     */
+    public void next(boolean userSkippedSong) {
+        if (serviceState != ServiceState.Paused && serviceState != ServiceState.Playing)
+            return;
+
+        // TODO implement a queue of songs to prevent last songs
+        //      to be played
+        // TODO or maybe a playlist, whatever
+
+        if (userSkippedSong)
+            broadcastState(ServicePlayMusic.BROADCAST_EXTRA_SKIP_NEXT);
+
+        // Updates Lock-Screen Widget
+        if (lockscreenController != null)
+            lockscreenController.setPlaybackState(RemoteControlClient.PLAYSTATE_SKIPPING_FORWARDS);
+
+        if (shuffleMode) {
+            int newSongPosition = currentSongPosition;
+
+            while (newSongPosition == currentSongPosition)
+                newSongPosition = randomNumberGenerator.nextInt(songs.size());
+
+            currentSongPosition = newSongPosition;
+            return;
+        }
+
+        currentSongPosition++;
+
+        if (currentSongPosition >= songs.size())
+            currentSongPosition = 0;
+    }
+
+    //this is to the get the duration of the song can be used for side bar
+    public int getPosition() {
+        return player.getCurrentPosition();
+    }
+
+    public int getDuration() {
+        return player.getDuration();
+    }
+
+    public boolean isPlaying() {
+        boolean returnValue = false;
+
+        try {
+            returnValue = player.isPlaying();
+        }
+        catch (IllegalStateException e) {
+            player.reset();
+            player.prepareAsync();
+        }
+
+        return returnValue;
+    }
+
+    public boolean isPaused() {
+        return serviceState == ServiceState.Paused;
+    }
+
+
+
+
+
+
 
 
 
