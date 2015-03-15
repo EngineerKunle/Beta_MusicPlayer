@@ -622,44 +622,104 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @Override
-    public void onAudioFocusChange(int focusChange) {
-
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        return false;
-    }
-
+    /**
+     * Called when the music is ready for playback.
+     */
     @Override
     public void onPrepared(MediaPlayer mp) {
 
+        serviceState = ServiceState.Playing;
+
+        // Start playback
+        player.start();
+
+        // If the user clicks on the notification, let's spawn the
+        // Now Playing screen.
+        notifyCurrentSong();
     }
+
+    /**
+     * Sets a specific song, already within internal Now Playing List.
+     *
+     * @param songIndex Index of the song inside the Now Playing List.
+     */
+    public void setSong(int songIndex) {
+
+        if (songIndex < 0 || songIndex >= songs.size())
+            currentSongPosition = 0;
+        else
+            currentSongPosition = songIndex;
+    }
+
+
+    /**
+     * Will be called when the music completes - either when the
+     * user presses 'next' or when the music ends or when the user
+     * selects another track.
+     */
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+
+        // Keep this state!
+        serviceState = ServiceState.Playing;
+
+        // TODO: Why do I need this?
+/*		if (player.getCurrentPosition() <= 0)
+			return;
+*/
+        broadcastState(ServicePlayMusic.BROADCAST_EXTRA_COMPLETED);
+
+        // Repeating current song if desired
+        if (repeatMode) {
+            playSong();
+            return;
+        }
+
+        // Remember that by calling next(), if played
+        // the last song on the list, will reset to the
+        // first one.
+        next(false);
+
+        // Reached the end, should we restart playing
+        // from the first song or simply stop?
+        if (currentSongPosition == 0) {
+            if (IpMain.settings.get("repeat_list", false))
+                playSong();
+
+            else
+                destroySelf();
+
+            return;
+        }
+        // Common case - skipped a track or anything
+        playSong();
+    }
+
+
+
+    /**
+     * If something wrong happens with the MusicPlayer.
+     */
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        mp.reset();
+        Log.w(TAG, "onError");
+        return false;
+    }
+
+    /**
+     * Kills the service.
+     *
+     * @note Explicitly call this when the service is completed
+     *       or whatnot.
+     */
+    private void destroySelf() {
+        stopSelf();
+        currentSong = null;
+    }
+
+
+
 
     @Override
     public IBinder onBind(Intent intent) {
