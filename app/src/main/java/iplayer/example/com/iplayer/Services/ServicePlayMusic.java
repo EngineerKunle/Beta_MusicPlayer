@@ -4,12 +4,15 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RemoteControlClient;
+import android.net.Uri;
+import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -18,7 +21,10 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
 
 import iplayer.example.com.iplayer.IpMain;
@@ -34,7 +40,7 @@ import iplayer.example.com.iplayer.external.RemoteControlHelper;
 
 //need to work on audiofocus class
 
-public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPreparedListener,
+public class ServicePlayMusic extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener,
         MediaPlayer.OnCompletionListener,
         AudioManager.OnAudioFocusChangeListener {
@@ -127,7 +133,7 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
     public static final String BROADCAST_ORDER_SKIP            = "SKIP";
     public static final String BROADCAST_ORDER_REWIND          = "REWIND";
 
-    enum Servicestate{
+    enum ServiceState{
 
         Stopped, //when media player has stopped or cannot play
 
@@ -141,7 +147,7 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
 
 
     //setting the current state.
-    Servicestate servicestate = Servicestate.Preparing;
+    ServiceState serviceState = ServiceState.Preparing;
 
     /**
      * Controller that communicates with the lock screen,
@@ -808,16 +814,314 @@ public class ServicePlayMusic extends Service 	implements MediaPlayer.OnPrepared
         return serviceState == ServiceState.Paused;
     }
 
+    /**
+     * Actually plays the song set by `currentSongPosition`.
+     */
+
+    public void playSong() {
+
+        player.reset();
+
+        // Get the song ID from the list, extract the ID and
+        // get an URL based on it
+        Song songToPlay = songs.get(currentSongPosition);
+
+        currentSong = songToPlay;
+
+        // Append the external URI with our songs'
+        Uri songToPlayURI = ContentUris.withAppendedId
+                (android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        songToPlay.getId());
+
+        try {
+            player.setDataSource(getApplicationContext(), songToPlayURI);
+        }
+        catch(IOException io) {
+            Log.e(TAG, "IOException: couldn't change the song", io);
+            destroySelf();
+        }
+        catch(Exception e) {
+            Log.e(TAG, "Error when changing the song", e);
+            destroySelf();
+        }
+
+        // Prepare the MusicPlayer asynchronously.
+        // When finished, will call `onPrepare`
+        player.prepareAsync();
+        serviceState = ServiceState.Preparing;
+
+        broadcastState(ServicePlayMusic.BROADCAST_EXTRA_PLAYING);
+
+        updateLockScreenWidget(currentSong, RemoteControlClient.PLAYSTATE_PLAYING);
+        Log.w(TAG, "play song");
+    }
+
+    public void pausePlayer() {
+        if (serviceState != ServiceState.Paused && serviceState != ServiceState.Playing)
+            return;
+
+        player.pause();
+        serviceState = ServiceState.Paused;
+
+        notification.notifyPaused(true);
+
+        // Updates Lock-Screen Widget
+        if (lockscreenController != null)
+            lockscreenController.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
+
+        broadcastState(ServicePlayMusic.BROADCAST_EXTRA_PAUSED);
+    }
+
+    public void unpausePlayer() {
+        if (serviceState != ServiceState.Paused && serviceState != ServiceState.Playing)
+            return;
+
+        player.start();
+        serviceState = ServiceState.Playing;
+
+        notification.notifyPaused(false);
 
 
+        // Updates Lock-Screen Widget
+        if (lockscreenController != null)
+            lockscreenController.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
 
+        broadcastState(ServicePlayMusic.BROADCAST_EXTRA_UNPAUSED);
+    }
 
+    /**
+     * Toggles between Pause and Unpause.
+     *
+     * @see pausePlayer()
+     * @see unpausePlayer()
+     */
+    public void togglePlayback() {
+        if (serviceState == ServiceState.Paused)
+            unpausePlayer();
+        else
+            pausePlayer();
+    }
 
+    public void seekTo(int position) {
+        player.seekTo(position);
+    }
 
+    /**
+     * Toggles the Shuffle mode
+     * (if will play songs in random order).
+     */
+    public void toggleShuffle() {
+        shuffleMode = !shuffleMode;
+    }
 
+    /**
+     * Shuffle mode state.
+     * @return If Shuffle mode is on/off.
+     */
+    public boolean isShuffle() {
+        return shuffleMode;
+    }
 
+    /**
+     * Toggles the Repeat mode
+     * (if the current song will play again
+     *  when completed).
+     */
+    public void toggleRepeat() {
+        repeatMode = ! repeatMode;
+    }
+
+    /**
+     * Repeat mode state.
+     * @return If Repeat mode is on/off.
+     */
+    public boolean isRepeat() {
+        return repeatMode;
+    }
+
+    // THESE ARE METHODS RELATED TO CONNECTING THE SERVICE
+    // TO THE ANDROID PLATFORM
+    // NOTHING TO DO WITH MUSIC-PLAYING
+
+    /**
+     * Tells if this service is bound to an Activity.
+     */
+    public boolean musicBound = false;
+
+    /**
+     * Defines the interaction between an Activity and this Service.
+     */
+    public class MusicBinder extends Binder {
+        public ServicePlayMusic getService() {
+            return ServicePlayMusic.this;
+        }
+    }
+
+    /**
+     * Token for the interaction between an Activity and this Service.
+     */
+    private final IBinder musicBind = new MusicBinder();
+
+    /**
+     * Called when the Service is finally bound to the app.
+     */
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return musicBind;
     }
+
+    /**
+     * Called when the Service is unbound - user quitting
+     * the app or something.
+     */
+    @Override
+    public boolean onUnbind(Intent intent) {
+
+        return false;
+    }
+
+    /**
+     * Sorts the internal Now Playing List according to
+     * a `rule`.
+     *
+     * Supported ways to sort are:
+     * - "title":  Sorts alphabetically by song title
+     * - "artist": Sorts alphabetically by artist name
+     * - "album":  Sorts alphabetically by album name
+     * - "track":  Sorts by track number
+     * - "random": Sorts randomly (shuffles song's orders)
+     */
+    public void sortBy(String rule) {
+
+        // We track the currently playing song to
+        // a position on the song list.
+        //
+        // When we sort, it'll be on a different
+        // position.
+        //
+        // So we keep a reference to the currently
+        // playing song's ID and then look it up
+        // after sorting.
+        long nowPlayingSongID = ((currentSong == null) ?
+                0 :
+                currentSong.getId());
+
+        if (rule.equals("title"))
+            Collections.sort(songs, new Comparator<Song>() {
+                public int compare(Song a, Song b) {
+                    return a.getTitle().compareTo(b.getTitle());
+                }
+            });
+
+        else if (rule.equals("artist"))
+            Collections.sort(songs, new Comparator<Song>() {
+                public int compare(Song a, Song b)
+                {
+                    return a.getArtist().compareTo(b.getArtist());
+                }
+            });
+
+        else if (rule.equals("album"))
+            Collections.sort(songs, new Comparator<Song>() {
+                public int compare(Song a, Song b)
+                {
+                    return a.getAlbum().compareTo(b.getAlbum());
+                }
+            });
+
+        else if (rule.equals("track"))
+            Collections.sort(songs, new Comparator<Song>() {
+                public int compare(Song a, Song b)
+                {
+                    int left  = a.getTrackNumber();
+                    int right = b.getTrackNumber();
+
+                    if (left == right)
+                        return 0;
+
+                    return ((left < right) ?
+                            -1 :
+                            1);
+                }
+            });
+
+        else if (rule.equals("random")) {
+            Collections.shuffle(songs, randomNumberGenerator);
+        }
+
+
+        // Now that we sorted, get again the current song
+        // position.
+        int position = 0;
+        for (Song song : songs) {
+            if (song.getId() == nowPlayingSongID) {
+                currentSongPosition = position;
+                break;
+            }
+            position++;
+        }
+    }
+
+    /**
+     * Returns the song on the Now Playing List at `position`.
+     */
+    public Song getSong(int position) {
+        return songs.get(position);
+    }
+
+    /**
+     * Displays a notification on the status bar with the
+     * current song and some nice buttons.
+     */
+    public void notifyCurrentSong() {
+        if (! IpMain.settings.get("show_notification", true))
+            return;
+        if (currentSong == null)
+            return;
+
+        if (notification == null)
+            notification = new NotificationMusic();
+
+        notification.notifySong(this, this, currentSong);
+    }
+
+    /**
+     * Disables the hability to notify things on the
+     * status bar.
+     *
+     * @see #notifyCurrentSong()
+     */
+    public void cancelNotification() {
+        if (notification == null)
+            return;
+
+        notification.cancel();
+        notification = null;
+    }
+
+    /**
+     * Shouts the state of the Music Service.
+     *
+     * @note This broadcast is visible only inside this application.
+     *
+     * @note Will get received by listeners of `ServicePlayMusic.BROADCAST_ACTION`
+     *
+     * @param state Current state of the Music Service.
+     */
+    private void broadcastState(String state) {
+        if (currentSong == null)
+            return;
+
+        Intent broadcastIntent = new Intent(ServicePlayMusic.BROADCAST_ACTION);
+
+        broadcastIntent.putExtra(ServicePlayMusic.BROADCAST_EXTRA_STATE,   state);
+        broadcastIntent.putExtra(ServicePlayMusic.BROADCAST_EXTRA_SONG_ID, currentSong.getId());
+
+        LocalBroadcastManager
+                .getInstance(getApplicationContext())
+                .sendBroadcast(broadcastIntent);
+
+        Log.w(TAG, "sentBroadcast");
+    }
+
 }

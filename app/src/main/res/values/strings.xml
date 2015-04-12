@@ -13,6 +13,15 @@
     <string name="service_music_play_headphone_off">Headphone disconnected</string>
     <string name="service_music_play_headphone_on">Headphone connected (%1$s)</string>
 
+    <!-- set content description -->
+
+    <string name="notification_button_play">Play</string>
+    <string name="notification_button_skip">Skip</string>
+
+    <!--set the placeholder string -->
+
+    <string name="place_holder_string">placeholer</string>
+
 
 
 </resources>
