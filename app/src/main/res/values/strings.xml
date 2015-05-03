@@ -13,6 +13,12 @@
     <string name="service_music_play_headphone_off">Headphone disconnected</string>
     <string name="service_music_play_headphone_on">Headphone connected (%1$s)</string>
 
+    <!--Below is the string for basic settings-->
+
+    <string name="exit">Exit</string>
+    <string name="settings">Setting</string>
+
+
     <!-- set content description -->
 
     <string name="notification_button_play">Play</string>
@@ -21,8 +27,8 @@
     <!--set the placeholder string -->
 
     <string name="place_holder_string">placeholer</string>
+    <string name="title_activity_activity_now_playing">ActivityNowPlaying</string>
 
-    <!--Below is the string for  -->
 
 
 

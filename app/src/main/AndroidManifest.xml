@@ -32,6 +32,10 @@
             android:label="@string/title_activity_media"
             android:parentActivityName=".MainActivity" >
         </activity>
+        <activity
+            android:name=".Activities.ActivityNowPlaying"
+            android:label="@string/title_activity_activity_now_playing" >
+        </activity>
     </application>
 
 </manifest>
