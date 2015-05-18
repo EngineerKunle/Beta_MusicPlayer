@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.RemoteViews;
 
+import iplayer.example.com.iplayer.Activities.ActivityNowPlaying;
 import iplayer.example.com.iplayer.Model.Song;
 
 /**
