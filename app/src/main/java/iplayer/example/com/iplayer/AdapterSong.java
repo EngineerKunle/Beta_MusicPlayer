@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 
@@ -25,6 +26,8 @@ public class AdapterSong  extends BaseAdapter {
     }
 
 
+
+
     @Override
     public int getCount() {
         return songs.size();
@@ -43,7 +46,15 @@ public class AdapterSong  extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+
+        //will map out the song to a song layout
+        // Will map from a Song to a Song layout
+        LinearLayout songLayout = (LinearLayout)songInflater.inflate(R.layout.menu_item_song,
+                parent,
+                false);
+
+
         return null;
     }
-//read this blog http://ocddevelopers.com/2014/extend-baseadapter-instead-of-arrayadapter-for-custom-list-items/
+
 }
