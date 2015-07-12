@@ -7,4 +7,9 @@
     android:paddingTop="4dp"
     >
 
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <!--we need to test each activity on the real project and then add font to next page.-->
+
 </LinearLayout>

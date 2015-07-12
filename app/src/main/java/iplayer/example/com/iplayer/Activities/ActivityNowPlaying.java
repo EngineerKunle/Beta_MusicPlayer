@@ -1,17 +1,22 @@
 package iplayer.example.com.iplayer.Activities;
 
+import android.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.MediaController.MediaPlayerControl;
+import android.widget.PopupMenu;
 
+import iplayer.example.com.iplayer.AdapterSong;
 import iplayer.example.com.iplayer.MusicController;
 import iplayer.example.com.iplayer.R;
 
@@ -31,10 +36,15 @@ public class ActivityNowPlaying extends ActivityMaster implements MediaPlayerCon
 
     private MusicController musicController;
 
+    /** Maps out the songs item*/
+    private AdapterSong songApdater;
+
     /**
-     *
-     * @param savedInstanceState
+     * Little menu that will show when the user
+     * clicks the ActionBar.
+     * It serves to sort the current song list.
      */
+    private PopupMenu popup;
 
 
     @Override
@@ -45,6 +55,37 @@ public class ActivityNowPlaying extends ActivityMaster implements MediaPlayerCon
         Log.d(TAG, "Activity Now Playing is live");
     }
 
+    public void createActionBar(){
+
+        ActionBar actionBar = getActionBar();
+
+        if(actionBar == null)
+            return;
+
+        Window window = getWindow();
+        View view = window.getDecorView();
+        int resID = getResources().getIdentifier("action_bar_container", "id", "android");
+
+        popup = new PopupMenu(this, view.findViewById(resID));
+        MenuInflater menuInflater = popup.getMenuInflater();
+
+        menuInflater.inflate(R.menu.activity_now_playing_action_bar_submenu, popup.getMenu());
+
+        PopupMenu.OnMenuItemClickListener listener = new PopupMenu.OnMenuItemClickListener(){
+
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                boolean updateList = false;
+                switch (item.getItemId()){
+
+                }
+                return false;
+            }
+        };
+
+
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -52,6 +93,7 @@ public class ActivityNowPlaying extends ActivityMaster implements MediaPlayerCon
         getMenuInflater().inflate(R.menu.menu_activity_now_playing, menu);
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

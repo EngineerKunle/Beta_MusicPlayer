@@ -29,6 +29,14 @@
     <string name="place_holder_string">placeholer</string>
     <string name="title_activity_activity_now_playing">ActivityNowPlaying</string>
 
+    <!--Now activity left menu options-->
+    <string name="menu_now_playing_action_bar_sort_title">Sort by Title</string>
+    <string name="menu_now_playing_action_bar_sort_artist">Sort by Artist</string>
+    <string name="menu_now_playing_action_bar_sort_album">Sort by Album</string>
+    <string name="menu_now_playing_action_bar_sort_track">Sort by Track Number</string>
+    <string name="menu_now_playing_action_bar_sort_random">Sort Randomly</string>
+    <string name="menu_now_playing_action_bar_new_playlist">Create new Playlist</string>
+
 
 
 
