@@ -17,6 +17,7 @@ import android.widget.MediaController.MediaPlayerControl;
 import android.widget.PopupMenu;
 
 import iplayer.example.com.iplayer.AdapterSong;
+import iplayer.example.com.iplayer.IpMain;
 import iplayer.example.com.iplayer.MusicController;
 import iplayer.example.com.iplayer.R;
 
@@ -78,10 +79,47 @@ public class ActivityNowPlaying extends ActivityMaster implements MediaPlayerCon
                 boolean updateList = false;
                 switch (item.getItemId()){
 
+                    //continue from here
+                    case R.id.action_bar_submenu_title:
+                        IpMain.musicService.sortBy("title");
+                        updateList = true;
+                        break;
+
+                    case R.id.action_bar_submenu_artist:
+                        IpMain.musicService.sortBy("artist");
+                        updateList = true;
+                        break;
+
+                    case R.id.action_bar_submenu_album:
+                        IpMain.musicService.sortBy("album");
+                        updateList = true;
+                        break;
+
+                    case R.id.action_bar_submenu_track:
+                        IpMain.musicService.sortBy("track");
+                        updateList = true;
+                        break;
+
+                    case R.id.action_bar_submenu_random:
+                        IpMain.musicService.sortBy("random");
+                        updateList = true;
+                        break;
+                 }
+
+                if (updateList) {
+                    songApdater.notifyDataSetChanged();
+                    songListView.setSelection(IpMain.musicService.currentSongPosition);
                 }
                 return false;
             }
         };
+
+        popup.setOnMenuItemClickListener(listener);
+
+        actionBar.setHomeButtonEnabled(false);
+
+
+
 
 
     }
