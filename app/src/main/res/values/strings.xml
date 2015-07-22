@@ -17,12 +17,15 @@
 
     <string name="exit">Exit</string>
     <string name="settings">Setting</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="repeat">repeat</string>
 
 
     <!-- set content description -->
 
     <string name="notification_button_play">Play</string>
     <string name="notification_button_skip">Skip</string>
+    <string name="Now_playing">Now Playing List</string>
 
     <!--set the placeholder string -->
 
@@ -36,6 +39,9 @@
     <string name="menu_now_playing_action_bar_sort_track">Sort by Track Number</string>
     <string name="menu_now_playing_action_bar_sort_random">Sort Randomly</string>
     <string name="menu_now_playing_action_bar_new_playlist">Create new Playlist</string>
+    
+    <!--colours-->
+    <color name="yellow">#ffffb2</color>
 
 
 

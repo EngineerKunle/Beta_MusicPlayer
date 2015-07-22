@@ -15,6 +15,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.MediaController.MediaPlayerControl;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 
 import iplayer.example.com.iplayer.AdapterSong;
 import iplayer.example.com.iplayer.IpMain;
@@ -36,6 +37,10 @@ public class ActivityNowPlaying extends ActivityMaster implements MediaPlayerCon
     private boolean playbackpaused = false;
 
     private MusicController musicController;
+
+    private MenuItem shuffleItem;
+
+    private MenuItem repeatItem;
 
     /** Maps out the songs item*/
     private AdapterSong songApdater;
@@ -118,18 +123,54 @@ public class ActivityNowPlaying extends ActivityMaster implements MediaPlayerCon
 
         actionBar.setHomeButtonEnabled(false);
 
+        actionBar.setCustomView(R.layout.activity_now_playing_action_bar);
 
+        TextView textTop = (TextView) actionBar.getCustomView().findViewById(R.id.action_bar_title1);
 
+        textTop.setText(getString(R.string.Now_playing)); //TODO change this to Artist Name
 
+        TextView textBottom = (TextView) actionBar.getCustomView().findViewById(R.id.action_bar_subtitle);
+
+        textBottom.setText("");
+
+        //actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+
+        // And when we click on the custom layout
+        // (our button with "Title" and "Subtitle")...
+        actionBar
+                .getCustomView()
+                .setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        popup.show();
+                    }
+                });
 
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_activity_now_playing, menu);
-        return true;
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.action_bar_items, menu);
+
+        shuffleItem = menu.findItem(R.id.action_bar_shuffle);
+        repeatItem = menu.findItem(R.id.action_bar_repeat);
+
+        //refreshActionBarItems();
+        //refreshActionBarSubtitle();
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**this method changes icon for shuffle and repeat*/
+
+    public void refreshActionBarItems(){
+
+
+
     }
 
 
