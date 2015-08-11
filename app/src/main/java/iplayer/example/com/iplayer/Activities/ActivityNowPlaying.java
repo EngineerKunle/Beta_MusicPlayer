@@ -159,31 +159,54 @@ public class ActivityNowPlaying extends ActivityMaster implements MediaPlayerCon
         shuffleItem = menu.findItem(R.id.action_bar_shuffle);
         repeatItem = menu.findItem(R.id.action_bar_repeat);
 
-        //refreshActionBarItems();
-        //refreshActionBarSubtitle();
+        refreshActionBarItems();
+        refreshActionBarSubtitle();
 
         return super.onCreateOptionsMenu(menu);
     }
 
     /**this method changes icon for shuffle and repeat*/
 
-    public void refreshActionBarItems(){
+    private void refreshActionBarItems() {
 
+        shuffleItem
+                .setIcon((IpMain.musicService.isShuffle()) ? R.drawable.ic_menu_shuffle_on
+                        : R.drawable.ic_menu_shuffle_off);
 
+        repeatItem
+                .setIcon((IpMain.musicService.isRepeat()) ? R.drawable.ic_menu_repeat_on
+                        : R.drawable.ic_menu_repeat_off);
+    }
+
+    private void refreshActionBarSubtitle(){
+        ActionBar actionBar = getActionBar();
+        if(actionBar==null)
+            return;
+
+        if(IpMain.musicService.currentSong == null)
+            return;
+
+        TextView textBottom = (TextView) actionBar.getCustomView().findViewById(R.id.action_bar_subtitle);
+        textBottom.setText(IpMain.musicService.currentSong.getTitle());
 
     }
 
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()){
+
+            case R.id.action_bar_shuffle:
+                IpMain.musicService.toggleShuffle();
+                refreshActionBarSubtitle();
+                return true;
+
+            case R.id.action_bar_repeat:
+                IpMain.musicService.toggleRepeat();
+                refreshActionBarSubtitle();
+                return true;
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -195,8 +218,30 @@ public class ActivityNowPlaying extends ActivityMaster implements MediaPlayerCon
     }
 
     @Override
-    public void pause() {
+    public void pause(){
+        super.onPause();
 
+        paused = true;
+        playbackpaused = true;
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        refreshActionBarSubtitle();
+
+        if (paused) {
+            // Ensure that the controller
+            // is shown when the user returns to the app
+            //setMusicController();
+            paused = false;
+        }
+
+        // Scroll the list view to the current song.
+        if (IpMain.settings.get("scroll_on_focus", true))
+            songListView.setSelection(IpMain.musicService.currentSongPosition);
     }
 
     @Override
